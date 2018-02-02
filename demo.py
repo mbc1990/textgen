@@ -41,7 +41,9 @@ def train():
 
     # define the LSTM model
     model = Sequential()
-    model.add(LSTM(256, input_shape=(X.shape[1], X.shape[2])))
+    model.add(LSTM(256, input_shape=(X.shape[1], X.shape[2]), return_sequences=True))
+    model.add(Dropout(0.2))
+    model.add(LSTM(256))
     model.add(Dropout(0.2))
     model.add(Dense(y.shape[1], activation='softmax'))
     model.compile(loss='categorical_crossentropy', optimizer='adam')
@@ -86,12 +88,14 @@ def generate():
     y = np_utils.to_categorical(dataY)
     # define the LSTM model
     model = Sequential()
-    model.add(LSTM(256, input_shape=(X.shape[1], X.shape[2])))
+    model.add(LSTM(256, input_shape=(X.shape[1], X.shape[2]), return_sequences=True))
+    model.add(Dropout(0.2))
+    model.add(LSTM(256))
     model.add(Dropout(0.2))
     model.add(Dense(y.shape[1], activation='softmax'))
 
     # load the network weights
-    filename = "weights-improvement-01-3.0662.hdf5"
+    filename = "weights-improvement-05-2.2604.hdf5"
     model.load_weights(filename)
     model.compile(loss='categorical_crossentropy', optimizer='adam')
 
@@ -119,14 +123,14 @@ def generate():
             pattern.append(index)
             pattern = pattern[1:len(pattern)]
 
-    with open("output-10epochs.txt", "w") as f:
+    with open("output-10-epochs-10-seq.txt", "w") as f:
         f.write(outstr)
     print "\nDone."   
 
 
 def main():
-    train()
-    # generate()
+    # train()
+    generate()
 
 
 if __name__ == "__main__":
