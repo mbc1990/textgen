@@ -4,6 +4,7 @@ from keras.models import Sequential
 from keras.layers import Dense
 from keras.layers import Dropout
 from keras.layers import LSTM
+from keras.layers import Conv1D 
 from keras.callbacks import ModelCheckpoint
 from keras.utils import np_utils
 
@@ -21,13 +22,15 @@ def train():
     print "Total Vocab: ", n_vocab
 
     # prepare the dataset of input to output pairs encoded as integers
-    seq_length = 10
+    seq_length = 100
     dataX = []
     dataY = []
     for i in range(0, n_chars - seq_length, 1):
             seq_in = raw_text[i:i + seq_length]
             seq_out = raw_text[i + seq_length]
+            # 100 characters
             dataX.append([char_to_int[char] for char in seq_in])
+            # 100 + 1th character - so dataX[i] is the sequence of characters preceeding the character in dataY[i]
             dataY.append(char_to_int[seq_out])
     n_patterns = len(dataX)
     print "Total Patterns: ", n_patterns
@@ -42,7 +45,9 @@ def train():
     # define the LSTM model
     model = Sequential()
     model.add(LSTM(256, input_shape=(X.shape[1], X.shape[2]), return_sequences=True))
+    model.add(Conv1D(128, 5))
     model.add(Dropout(0.2))
+    model.add(Conv1D(128, 5))
     model.add(LSTM(256))
     model.add(Dropout(0.2))
     model.add(Dense(y.shape[1], activation='softmax'))
@@ -53,7 +58,7 @@ def train():
     checkpoint = ModelCheckpoint(filepath, monitor='loss', verbose=1, save_best_only=True, mode='min')
     callbacks_list = [checkpoint]
 
-    model.fit(X, y, epochs=10, batch_size=128, callbacks=callbacks_list)
+    model.fit(X, y, epochs=5, batch_size=128, callbacks=callbacks_list)
 
 def generate():
     # load ascii text and covert to lowercase
@@ -70,7 +75,7 @@ def generate():
     print "Total Characters: ", n_chars
     print "Total Vocab: ", n_vocab
     # prepare the dataset of input to output pairs encoded as integers
-    seq_length = 10
+    seq_length = 100
     dataX = []
     dataY = []
     for i in range(0, n_chars - seq_length, 1):
@@ -95,7 +100,7 @@ def generate():
     model.add(Dense(y.shape[1], activation='softmax'))
 
     # load the network weights
-    filename = "weights-improvement-05-2.2604.hdf5"
+    filename = "weights-improvement-10-1.9211.hdf5"  # TODO: Update
     model.load_weights(filename)
     model.compile(loss='categorical_crossentropy', optimizer='adam')
 
@@ -123,14 +128,14 @@ def generate():
             pattern.append(index)
             pattern = pattern[1:len(pattern)]
 
-    with open("output-10-epochs-10-seq.txt", "w") as f:
+    with open("alice.txt", "w") as f:
         f.write(outstr)
     print "\nDone."   
 
 
 def main():
-    # train()
-    generate()
+    train()
+    # generate()
 
 
 if __name__ == "__main__":
